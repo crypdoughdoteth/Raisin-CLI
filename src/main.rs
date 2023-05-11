@@ -50,6 +50,8 @@ enum Command {
     Withdraw(Index),
     /// refund from a fund (if !succesful)
     Refund(Index),
+    /// get information on a Raisin
+    GetRaisin(Index),
 }
 
 #[derive(Debug, Args)]
@@ -133,6 +135,10 @@ async fn main() -> Result<()> {
         Command::Refund(x) => {
             let index: U256 = parse_ether(x.num)?;
             Raisin::refund(contract, index).await?;
+        }
+        Command::GetRaisin(x) => {
+            let index: U256 = parse_ether(x.num)?;
+            Raisin::get_raisin(contract, index).await?;
         }
         Command::BatchDonation(x) => {
             let amount: Vec<U256> = x.amt.iter().map(move |x| parse_ether(x).unwrap()).collect();
