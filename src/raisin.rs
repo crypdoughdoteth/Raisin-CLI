@@ -4,6 +4,7 @@ use ethers::{
     prelude::ContractInstance,
     providers::Middleware,
     types::{Address, U256},
+    utils::format_ether,
 };
 use serde_json::Value;
 use std::borrow::Borrow;
@@ -30,6 +31,7 @@ impl Raisin {
         tkn: Address,
         receiver: Address,
     ) -> Result<()> {
+        println!("You have began a fund on Raisin with a goal of: Token Contract: {}, Amount: {}, for Cause #{}", &tkn, &amt, &receiver );
         let call =
             contract.method::<_, (U256, Address, Address)>("initFund", (amt, tkn, receiver))?;
         let pending = call.send().await?;
@@ -47,6 +49,12 @@ impl Raisin {
         T: Clone + Borrow<M>,
         M: Middleware + 'static,
     {
+        println!(
+            "Donation pending ... Token Contract: {}, Amount: {} to cause #{} ",
+            &tkn,
+            format_ether(amt.as_u32()),
+            &index
+        );
         let call = contract.method::<_, (Address, U256, U256)>("donateToken", (tkn, index, amt))?;
         let pending = call.send().await?;
         pending.confirmations(6).await?;
@@ -62,6 +70,10 @@ impl Raisin {
         T: Clone + Borrow<M>,
         M: Middleware + 'static,
     {
+        println!(
+            "Donations pending ... \nTokens: {:?}, \nAmounts: {:?}, \nInices: {:?}",
+            &tkn, &amt, &index
+        );
         let call = contract.method::<_, (Vec<Address>, Vec<U256>, Vec<U256>)>(
             "batchTokenDonate",
             (tkn, index, amt),
@@ -76,6 +88,7 @@ impl Raisin {
         T: Clone + Borrow<M>,
         M: Middleware + 'static,
     {
+        println!("Ending fund... #{}", &index);
         let call = contract.method::<_, U256>("endFund", index)?;
         let pending = call.send().await?;
         pending.confirmations(6).await?;
@@ -86,6 +99,7 @@ impl Raisin {
         T: Clone + Borrow<M>,
         M: Middleware + 'static,
     {
+        println!("Withdrawing from successful fundraiser ... #{}", &index);
         let call = contract.method::<_, U256>("fundWithdraw", index)?;
         let pending = call.send().await?;
         pending.confirmations(6).await?;
@@ -96,9 +110,30 @@ impl Raisin {
         T: Clone + Borrow<M>,
         M: Middleware + 'static,
     {
+        println!("Refunding from unsuccessful fundraiser ... #{}", &index);
         let call = contract.method::<_, U256>("refund", index)?;
         let pending = call.send().await?;
         pending.confirmations(6).await?;
         Ok(())
     }
+}
+
+pub(crate) async fn approve_token<T, M>(
+    contract: ContractInstance<T, M>,
+    spender: Address,
+    amt: U256,
+) -> Result<()>
+where
+    T: Clone + Borrow<M>,
+    M: Middleware + 'static,
+{
+    println!(
+        "Approving for Raisin... Contract: {}, Amount: {}",
+        &contract.address(),
+        format_ether(amt.as_u32())
+    );
+    let call = contract.method::<_, (U256, Address)>("Approve", (spender, amt))?;
+    let pending = call.send().await?;
+    pending.confirmations(6).await?;
+    Ok(())
 }
