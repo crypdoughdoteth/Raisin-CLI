@@ -94,6 +94,18 @@ impl Raisin {
         pending.confirmations(6).await?;
         Ok(())
     }
+    pub(crate) async fn get_raisin<T, M>(
+        contract: ContractInstance<T, M>,
+        index: U256,
+    ) -> Result<()>
+    where
+        T: Clone + Borrow<M>,
+        M: Middleware + 'static,
+    {
+        let raisin_info = contract.method::<_, U256>("raisins", index)?.call().await?;
+        println!("{}", raisin_info);
+        Ok(())
+    }
     pub(crate) async fn withdraw<T, M>(contract: ContractInstance<T, M>, index: U256) -> Result<()>
     where
         T: Clone + Borrow<M>,
