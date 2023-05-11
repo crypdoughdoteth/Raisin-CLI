@@ -119,10 +119,7 @@ async fn main() -> Result<()> {
             abi = serde_json::from_str::<Value>(&abi)?.to_string();
             let token_abi: Abi = serde_json::from_str(&format!(r#"{}"#, abi))?;
             let token_contract = Contract::new(token, token_abi, Arc::clone(&client));
-            let call = token_contract
-                .method::<_, (Address, U256)>("Approve", (raisin.address, parse_ether(&amount)?))?;
-            let pending = call.send().await?;
-            pending.confirmations(6).await?;
+            approve_token(token_contract, raisin.address, amount).await?;
             Raisin::donate(contract, index, token, amount).await?;
         }
         Command::EndFund(x) => {
@@ -141,6 +138,14 @@ async fn main() -> Result<()> {
             let amount: Vec<U256> = x.amt.iter().map(move |x| parse_ether(x).unwrap()).collect();
             let token: Vec<Address> = x.token.iter().map(move |x| x.parse().unwrap()).collect();
             let index: Vec<U256> = x.idx.iter().map(move |x| parse_ether(x).unwrap()).collect();
+            let mut abi = std::fs::read_to_string("testtoken.json")?;
+            abi = serde_json::from_str::<Value>(&abi)?.to_string();
+            let token_abi: Abi = serde_json::from_str(&format!(r#"{}"#, abi))?;
+            for i in 0..amount.len() {
+                let token_contract =
+                    Contract::new(token[i], token_abi.clone(), Arc::clone(&client));
+                approve_token(token_contract, raisin.address, amount[i]).await?;
+            }
             Raisin::batch_donate(contract, index, token, amount).await?;
         }
         _ => (),
