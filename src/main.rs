@@ -56,11 +56,8 @@ enum Command {
 
 #[derive(Debug, Args)]
 struct Init {
-    #[clap(short, long)]
     amt: f32,
-    #[clap(short, long)]
     token: String,
-    #[clap(short, long)]
     recipient: String,
 }
 #[derive(Debug, Args)]
