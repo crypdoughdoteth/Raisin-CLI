@@ -27,24 +27,24 @@ To invoke the Raisin-CLI use the command `raisin`!
 
 To use this tool, you need a keystore. Generate a new one by using: `raisin -p <PATH_TO_DIR> <NAME>`.
 
-To use the keystore: `raisin -p <PATH_TO_FILE> [Command]`
+To use the tool: `raisin -p <PATH_TO_FILE> <Command>`
 
 Your keystore will be encrypted, make sure you remember your password! 
 
 Command Options: 
 
-`new-key <NAME>`,
+`new-key <NAME>`: Creates a new keystore,
   
-`init-fund <AMOUNT> <TOKEN> <RECIPIENT>`,
+`init-fund <AMOUNT> <TOKEN> <RECIPIENT>`: Create a Raisin,
   
-`dontate <AMOUNT> <TOKEN> <INDEX>`,
+`dontate <AMOUNT> <TOKEN> <INDEX>`: Donate to a Raisin,
   
-`batch-donation <AMOUNTS> <TOKENS> <INDEX>`,
+`batch-donation <AMOUNTS> <TOKENS> <INDEX>`: Donate to multiple Raisins,
   
-`end-fund <INDEX>`,
+`end-fund <INDEX>`: End a Raisin you own,
   
-`withdraw <INDEX>`,
+`withdraw <INDEX>`: Withdraw from your successful Raisin,
   
-`refund <INDEX>`,
+`refund <INDEX>`: Refund from an unsuccessful Raisin,
   
-`get-raisin <INDEX>`
+`get-raisin <INDEX>`: Get information about a Raisin
