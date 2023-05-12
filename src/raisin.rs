@@ -40,7 +40,7 @@ impl Raisin {
         tkn: Address,
         receiver: Address,
     ) -> Result<()> {
-        println!("You have began a fund on Raisin with a goal of: Token Contract: {}, Amount: {}, for Cause #{}", &tkn, &amt, &receiver );
+        println!("You have began a fund on Raisin with a goal of: Token Contract: {}, Amount: {}, for {}", &tkn, &amt, &receiver );
         let call =
             contract.method::<_, (U256, Address, Address)>("initFund", (amt, tkn, receiver))?;
         let pending = call.send().await?;
