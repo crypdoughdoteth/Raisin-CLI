@@ -49,6 +49,6 @@ Command Options:
   
 `refund <INDEX>`: Refund from an unsuccessful Raisin,
   
-`get-raisin <INDEX>`: Get information about a Raisin,
+`get-raisin <INDEX> <TOKEN>`: Get information about a Raisin,
 
 `get-balance <ADDRESS> <TOKEN>`: Get balance of token at some address
