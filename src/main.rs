@@ -116,13 +116,13 @@ async fn main() -> Result<()> {
         Command::Donate(x) => {
             let amount: U256 = parse_ether(x.amt)?;
             let token: Address = x.token.parse()?;
-            let index: U256 = parse_ether(x.idx)?;
+            let index: U256 = x.idx.into();
             let mut abi = std::fs::read_to_string("testtoken.json")?;
             abi = serde_json::from_str::<Value>(&abi)?.to_string();
             let token_abi: Abi = serde_json::from_str(&format!(r#"{}"#, abi))?;
             let token_contract = Contract::new(token, token_abi, Arc::clone(&client));
             approve_token(token_contract, raisin.address, amount).await?;
-            Raisin::donate(contract, index, token, amount).await?;
+            Raisin::donate(contract, amount, token, index).await?;
         }
         Command::EndFund(x) => {
             let index: U256 = parse_ether(x.num)?;
@@ -152,7 +152,7 @@ async fn main() -> Result<()> {
                     Contract::new(token[i], token_abi.clone(), Arc::clone(&client));
                 approve_token(token_contract, raisin.address, amount[i]).await?;
             }
-            Raisin::batch_donate(contract, index, token, amount).await?;
+            Raisin::batch_donate(contract, amount, token, index).await?;
         }
         _ => (),
     }
