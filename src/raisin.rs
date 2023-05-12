@@ -4,10 +4,10 @@ use ethers::{
     prelude::ContractInstance,
     providers::Middleware,
     types::{Address, U256},
-    utils::{format_ether, format_units},
+    utils::{format_units},
 };
 use serde_json::Value;
-use std::borrow::Borrow;
+use std::{borrow::Borrow};
 pub(crate) struct Raisin {
     pub abi: Abi,
     pub address: Address,
@@ -15,8 +15,8 @@ pub(crate) struct Raisin {
 
 #[derive(Debug)]
 pub(crate) struct RaisinData {
-    fund_balance: U256,
-    goal: U256,
+    fund_balance: String,
+    goal: String,
     token: Address,
     raiser: Address,
     recipient: Address,
@@ -108,6 +108,7 @@ impl Raisin {
     pub(crate) async fn get_raisin<T, M>(
         contract: ContractInstance<T, M>,
         index: U256,
+        decimals: usize,
     ) -> Result<()>
     where
         T: Clone + Borrow<M>,
@@ -117,11 +118,14 @@ impl Raisin {
             .method::<_, (U256, U256, Address, Address, Address, U256)>("raisins", index)?
             .call()
             .await?;
+
+        let bal = format_units(raisin_info.1, decimals)?;
+        let goal = format_units(raisin_info.0, decimals)?;
         println!(
             "{:?}",
             RaisinData {
-                fund_balance: format_ether(raisin_info.0),
-                goal: format_ether(raisin_info.1),
+                fund_balance: bal,
+                goal: goal,
                 token: raisin_info.2,
                 raiser: raisin_info.3,
                 recipient: raisin_info.4,
@@ -189,6 +193,6 @@ where
     M: Middleware + 'static,
 {
     let call = contract.method::<_, U256>("balanceOf", address)?.call().await?;
-    println!("Your balance is: {:?}", format_units(call, decimals));
+    println!("Your balance is: {:?}", format_units(call, decimals)?);
     Ok(())
 }
