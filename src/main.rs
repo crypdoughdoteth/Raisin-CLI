@@ -8,7 +8,7 @@ use ethers::{
     providers::{Http, Middleware, Provider},
     signers::{LocalWallet, Signer, Wallet},
     types::{Address, U256},
-    utils::parse_ether,
+    utils::parse_units,
 };
 use serde_json::Value;
 use std::sync::Arc;
@@ -104,22 +104,28 @@ async fn main() -> Result<()> {
     let contract = Contract::new(raisin.address, raisin.abi, Arc::clone(&client));
     match cli.command {
         Command::InitFund(x) => {
-            let amount = parse_ether(x.amt)?;
             let token: Address = x.token.parse::<Address>()?;
-            let receiver: Address = x.recipient.parse::<Address>()?;
-            Raisin::init_fund(contract, amount, token, receiver).await?;
-            println!("Fund successfully initialized!");
-        }
-        Command::Donate(x) => {
-            let amount: U256 = parse_ether(x.amt)?;
-            let token: Address = x.token.parse()?;
-            let index: U256 = x.idx.into();
             let mut abi = std::fs::read_to_string("testtoken.json")?;
             abi = serde_json::from_str::<Value>(&abi)?.to_string();
             let token_abi: Abi = serde_json::from_str(&format!(r#"{}"#, abi))?;
             let token_contract = Contract::new(token, token_abi, Arc::clone(&client));
-            approve_token(token_contract, raisin.address, amount).await?;
-            Raisin::donate(contract, amount, token, index).await?;
+            let decimals = get_decimals(token_contract.clone()).await? as usize;
+            let amount = parse_units(x.amt, decimals)?;
+            let receiver: Address = x.recipient.parse::<Address>()?;
+            Raisin::init_fund(contract, amount.into(), token, receiver, decimals).await?;
+            println!("Fund successfully initialized!");
+        }
+        Command::Donate(x) => {
+            let token: Address = x.token.parse()?;
+            let mut abi = std::fs::read_to_string("testtoken.json")?;
+            abi = serde_json::from_str::<Value>(&abi)?.to_string();
+            let token_abi: Abi = serde_json::from_str(&format!(r#"{}"#, abi))?;
+            let token_contract = Contract::new(token, token_abi, Arc::clone(&client));
+            let decimals = get_decimals(token_contract.clone()).await? as usize;
+            let amount = parse_units(x.amt, decimals)?;
+            let index: U256 = x.idx.into();
+            approve_token(token_contract, raisin.address, amount.into(), decimals).await?;
+            Raisin::donate(contract, amount.into(), token, index, decimals).await?;
             println!("Donation successful!");
         }
         Command::EndFund(x) => {
@@ -142,7 +148,8 @@ async fn main() -> Result<()> {
             Raisin::get_raisin(contract, index).await?;
         }
         Command::BatchDonation(x) => {
-            let amount: Vec<U256> = x.amt.iter().map(move |x| parse_ether(x).unwrap()).collect();
+            let amount: Vec<f32> = x.amt;
+            let mut parsed_amounts: Vec<U256> = Vec::new();
             let token: Vec<Address> = x.token.iter().map(move |x| x.parse().unwrap()).collect();
             let index: Vec<U256> = x.idx.iter().map(move |x| U256::from(*x)).collect();
             let mut abi = std::fs::read_to_string("testtoken.json")?;
@@ -151,9 +158,17 @@ async fn main() -> Result<()> {
             for i in 0..amount.len() {
                 let token_contract =
                     Contract::new(token[i], token_abi.clone(), Arc::clone(&client));
-                approve_token(token_contract, raisin.address, amount[i]).await?;
+                let decimals: usize = get_decimals(token_contract.clone()).await? as usize;
+                approve_token(
+                    token_contract,
+                    raisin.address,
+                    parse_units(amount[i], decimals)?.into(),
+                    decimals,
+                )
+                .await?;
+                parsed_amounts.push(parse_units(amount[i], decimals)?.into());
             }
-            Raisin::batch_donate(contract, amount, token, index).await?;
+            Raisin::batch_donate(contract, parsed_amounts, token, index).await?;
             println!("Batch of donations sent successfully!");
         }
         _ => (),
