@@ -31,6 +31,8 @@ To use the tool: `raisin -p <PATH_TO_FILE> <Command>`
 
 Your keystore will be encrypted, make sure you remember your password! 
 
+NOTE: The testnet version of Raisin is currently on Sepolia!
+
 Command Options: 
 
 `new-key <NAME>`: Creates a new keystore,
