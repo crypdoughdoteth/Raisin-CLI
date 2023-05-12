@@ -52,6 +52,8 @@ enum Command {
     Refund(Index),
     /// get information on a Raisin
     GetRaisin(Index),
+    /// get token balance
+    GetBalance(Balance),
 }
 
 #[derive(Debug, Args)]
@@ -72,6 +74,12 @@ struct Donations {
     amt: Vec<f32>,
     token: Vec<String>,
     idx: Vec<u32>,
+}
+
+#[derive(Debug, Args)]
+struct Balance {
+    addy: String,
+    token: String
 }
 
 #[tokio::main]
@@ -171,6 +179,16 @@ async fn main() -> Result<()> {
             Raisin::batch_donate(contract, parsed_amounts, token, index).await?;
             println!("Batch of donations sent successfully!");
         }
+        Command::GetBalance(x) => {
+            let token: Address = x.token.parse()?;
+            let addy: Address = x.addy.parse()?;
+            let mut abi = std::fs::read_to_string("testtoken.json")?;
+            abi = serde_json::from_str::<Value>(&abi)?.to_string();
+            let token_abi: Abi = serde_json::from_str(&format!(r#"{}"#, abi))?;
+            let token_contract = Contract::new(token, token_abi, Arc::clone(&client));
+            let decimals = get_decimals(token_contract.clone()).await? as usize;
+            get_balance(token_contract, addy, decimals).await?;
+        }  
         _ => (),
     }
 
