@@ -126,28 +126,28 @@ async fn main() -> Result<()> {
             println!("Donation successful!");
         }
         Command::EndFund(x) => {
-            let index: U256 = parse_ether(x.num)?;
+            let index: U256 = x.num.into();
             Raisin::end_fund(contract, index).await?;
             println!("Successfully ended fund!");
         }
         Command::Withdraw(x) => {
-            let index: U256 = parse_ether(x.num)?;
+            let index: U256 = x.num.into();
             Raisin::withdraw(contract, index).await?;
             println!("Successfully withdrew funds!");
         }
         Command::Refund(x) => {
-            let index: U256 = parse_ether(x.num)?;
+            let index: U256 = x.num.into();
             Raisin::refund(contract, index).await?;
             println!("Refund successful!");
         }
         Command::GetRaisin(x) => {
-            let index: U256 = parse_ether(x.num)?;
+            let index: U256 = x.num.into();
             Raisin::get_raisin(contract, index).await?;
         }
         Command::BatchDonation(x) => {
             let amount: Vec<U256> = x.amt.iter().map(move |x| parse_ether(x).unwrap()).collect();
             let token: Vec<Address> = x.token.iter().map(move |x| x.parse().unwrap()).collect();
-            let index: Vec<U256> = x.idx.iter().map(move |x| parse_ether(x).unwrap()).collect();
+            let index: Vec<U256> = x.idx.iter().map(move |x| U256::from(*x)).collect();
             let mut abi = std::fs::read_to_string("testtoken.json")?;
             abi = serde_json::from_str::<Value>(&abi)?.to_string();
             let token_abi: Abi = serde_json::from_str(&format!(r#"{}"#, abi))?;
