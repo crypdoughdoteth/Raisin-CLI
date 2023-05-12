@@ -1,17 +1,26 @@
 use anyhow::Result;
 use ethers::{
-    abi::Abi,
+    abi::{Abi},
     prelude::ContractInstance,
     providers::Middleware,
     types::{Address, U256},
     utils::format_ether,
 };
 use serde_json::Value;
-use std::borrow::Borrow;
-
+use std::{borrow::Borrow};
 pub(crate) struct Raisin {
     pub abi: Abi,
     pub address: Address,
+}
+
+#[derive(Debug)]
+pub(crate) struct RaisinData {
+    fund_balance: U256, 
+    goal: U256, 
+    token: Address,
+    raiser: Address,
+    recipient: Address,
+    expires: U256
 }
 
 impl Raisin {
@@ -100,10 +109,11 @@ impl Raisin {
     ) -> Result<()>
     where
         T: Clone + Borrow<M>,
-        M: Middleware + 'static,
+        M: Middleware + 'static
     {
-        let raisin_info = contract.method::<_, U256>("raisins", index)?.call().await?;
-        println!("{}", raisin_info);
+        let raisin_info = contract.method::<_, (U256, U256, Address, Address, Address, U256)>("raisins", index)?.call().await.unwrap();
+        println!("{:?}", 
+        RaisinData {fund_balance: format_ether(raisin_info.0), goal: format_ether(raisin_info.1), token: raisin_info.2, raiser: raisin_info.3, recipient: raisin_info.4, expires: raisin_info.5});
         Ok(())
     }
     pub(crate) async fn withdraw<T, M>(contract: ContractInstance<T, M>, index: U256) -> Result<()>
