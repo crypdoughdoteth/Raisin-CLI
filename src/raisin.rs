@@ -182,3 +182,13 @@ where
     let call = contract.method::<_, U256>("decimals", ())?.call().await?;
     Ok(call.as_u64())
 }
+
+pub(crate) async fn get_balance<T, M>(contract: ContractInstance<T, M>, address: Address, decimals: usize) -> Result<()>
+where
+    T: Clone + Borrow<M>,
+    M: Middleware + 'static,
+{
+    let call = contract.method::<_, U256>("balanceOf", address)?.call().await?;
+    println!("Your balance is: {:?}", format_units(call, decimals));
+    Ok(())
+}
