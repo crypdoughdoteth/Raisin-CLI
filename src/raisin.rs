@@ -52,8 +52,8 @@ impl Raisin {
         println!(
             "Donation pending ... Token Contract: {}, Amount: {} to cause #{} ",
             &tkn,
-            format_ether(amt.as_u32()),
-            &index
+            format_ether(amt.as_u128()),
+            &index.as_u128()
         );
         let call = contract.method::<_, (Address, U256, U256)>("donateToken", (tkn, index, amt))?;
         let pending = call.send().await?;
@@ -142,9 +142,9 @@ where
     println!(
         "Approving for Raisin... Contract: {}, Amount: {}",
         &contract.address(),
-        format_ether(amt.as_u32())
+        format_ether(amt.as_u128())
     );
-    let call = contract.method::<_, (U256, Address)>("Approve", (spender, amt))?;
+    let call = contract.method::<_, (U256, Address)>("approve", (spender, amt))?;
     let pending = call.send().await?;
     pending.confirmations(6).await?;
     Ok(())
