@@ -4,7 +4,7 @@ use ethers::{
     prelude::ContractInstance,
     providers::Middleware,
     types::{Address, U256},
-    utils::format_ether,
+    utils::{format_ether, format_units},
 };
 use serde_json::Value;
 use std::borrow::Borrow;
@@ -39,8 +39,9 @@ impl Raisin {
         amt: U256,
         tkn: Address,
         receiver: Address,
+        decimals: usize,
     ) -> Result<()> {
-        println!("You have began a fund on Raisin with a goal of: Token Contract: {}, Amount: {}, for {}", &tkn, &amt, &receiver );
+        println!("You have began a fund on Raisin with a goal of: Token Contract: {}, Amount: {}, for {}", &tkn, format_units(amt, decimals)?, &receiver );
         let call =
             contract.method::<_, (U256, Address, Address)>("initFund", (amt, tkn, receiver))?;
         let pending = call.send().await?;
@@ -53,6 +54,7 @@ impl Raisin {
         amt: U256,
         tkn: Address,
         index: U256,
+        decimals: usize,
     ) -> Result<()>
     where
         T: Clone + Borrow<M>,
@@ -61,7 +63,7 @@ impl Raisin {
         println!(
             "Donation pending ... Token Contract: {}, Amount: {} to cause #{} ",
             &tkn,
-            format_ether(amt.as_u128()),
+            format_units(amt, decimals)?,
             &index.as_u128()
         );
         let call = contract.method::<_, (Address, U256, U256)>("donateToken", (tkn, index, amt))?;
@@ -156,6 +158,7 @@ pub(crate) async fn approve_token<T, M>(
     contract: ContractInstance<T, M>,
     spender: Address,
     amt: U256,
+    decimals: usize,
 ) -> Result<()>
 where
     T: Clone + Borrow<M>,
@@ -164,10 +167,18 @@ where
     println!(
         "Approving for Raisin... Contract: {}, Amount: {}",
         &contract.address(),
-        format_ether(amt.as_u128())
+        format_units(amt, decimals)?
     );
     let call = contract.method::<_, (U256, Address)>("approve", (spender, amt))?;
     let pending = call.send().await?;
     pending.confirmations(6).await?;
     Ok(())
+}
+pub(crate) async fn get_decimals<T, M>(contract: ContractInstance<T, M>) -> Result<u64>
+where
+    T: Clone + Borrow<M>,
+    M: Middleware + 'static,
+{
+    let call = contract.method::<_, U256>("decimals", ())?.call().await?;
+    Ok(call.as_u64())
 }
