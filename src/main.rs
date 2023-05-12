@@ -92,7 +92,7 @@ async fn main() -> Result<()> {
                 request_new_password(),
                 Some(&n.name),
             )?;
-            println!("{:?}", new.address());
+            println!("Your new address is {:?}", new.address());
             return Ok(());
         }
         _ => {
@@ -105,13 +105,13 @@ async fn main() -> Result<()> {
     };
     let client = Arc::new(SignerMiddleware::new(provider, key_store));
     let contract = Contract::new(raisin.address, raisin.abi, Arc::clone(&client));
-
     match cli.command {
         Command::InitFund(x) => {
             let amount = parse_ether(x.amt)?;
             let token: Address = x.token.parse::<Address>()?;
             let receiver: Address = x.recipient.parse::<Address>()?;
             Raisin::init_fund(contract, amount, token, receiver).await?;
+            println!("Fund successfully initialized!");
         }
         Command::Donate(x) => {
             let amount: U256 = parse_ether(x.amt)?;
@@ -123,18 +123,22 @@ async fn main() -> Result<()> {
             let token_contract = Contract::new(token, token_abi, Arc::clone(&client));
             approve_token(token_contract, raisin.address, amount).await?;
             Raisin::donate(contract, amount, token, index).await?;
+            println!("Donation successful!");
         }
         Command::EndFund(x) => {
             let index: U256 = parse_ether(x.num)?;
             Raisin::end_fund(contract, index).await?;
+            println!("Successfully ended fund!");
         }
         Command::Withdraw(x) => {
             let index: U256 = parse_ether(x.num)?;
             Raisin::withdraw(contract, index).await?;
+            println!("Successfully withdrew funds!");
         }
         Command::Refund(x) => {
             let index: U256 = parse_ether(x.num)?;
             Raisin::refund(contract, index).await?;
+            println!("Refund successful!");
         }
         Command::GetRaisin(x) => {
             let index: U256 = parse_ether(x.num)?;
@@ -153,6 +157,7 @@ async fn main() -> Result<()> {
                 approve_token(token_contract, raisin.address, amount[i]).await?;
             }
             Raisin::batch_donate(contract, amount, token, index).await?;
+            println!("Batch of donations sent successfully!");
         }
         _ => (),
     }
