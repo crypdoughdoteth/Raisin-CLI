@@ -4,10 +4,10 @@ use ethers::{
     prelude::ContractInstance,
     providers::Middleware,
     types::{Address, U256},
-    utils::{format_units},
+    utils::format_units,
 };
 use serde_json::Value;
-use std::{borrow::Borrow};
+use std::borrow::Borrow;
 pub(crate) struct Raisin {
     pub abi: Abi,
     pub address: Address,
@@ -187,12 +187,42 @@ where
     Ok(call.as_u64())
 }
 
-pub(crate) async fn get_balance<T, M>(contract: ContractInstance<T, M>, address: Address, decimals: usize) -> Result<()>
+pub(crate) async fn get_balance<T, M>(
+    contract: ContractInstance<T, M>,
+    address: Address,
+    decimals: usize,
+) -> Result<()>
 where
     T: Clone + Borrow<M>,
     M: Middleware + 'static,
 {
-    let call = contract.method::<_, U256>("balanceOf", address)?.call().await?;
+    let call = contract
+        .method::<_, U256>("balanceOf", address)?
+        .call()
+        .await?;
     println!("Your balance is: {:?}", format_units(call, decimals)?);
+    Ok(())
+}
+
+pub(crate) async fn transfer<T, M>(
+    contract: ContractInstance<T, M>,
+    token: Address,
+    amount: U256,
+    to: Address,
+    decimals: usize,
+) -> Result<()>
+where
+    T: Clone + Borrow<M>,
+    M: Middleware + 'static,
+{
+    println!(
+        "Sending asset: {}, amount: {} to {} ",
+        &token,
+        format_units(amount, decimals)?,
+        &to
+    );
+    let call = contract.method::<_, bool>("transfer", (to, amount))?;
+    let pending = call.send().await?;
+    pending.confirmations(6).await?;
     Ok(())
 }
