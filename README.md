@@ -51,4 +51,6 @@ Command Options:
   
 `get-raisin <INDEX> <TOKEN>`: Get information about a Raisin,
 
-`get-balance <ADDRESS> <TOKEN>`: Get balance of token at some address
+`get-balance <ADDRESS> <TOKEN>`: Get balance of token at some address,
+
+`transfer <AMOUNT> <TOKEN> <RECIPIENT>`: Transfer token from your keystore to an arbitrary address
