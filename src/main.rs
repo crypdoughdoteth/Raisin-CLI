@@ -54,6 +54,8 @@ enum Command {
     GetRaisin(FetchRaisin),
     /// get token balance
     GetBalance(Balance),
+    /// Transfer tokens
+    Transfer(Init),
 }
 
 #[derive(Debug, Args)]
@@ -79,14 +81,13 @@ struct Donations {
 #[derive(Debug, Args)]
 struct Balance {
     addy: String,
-    token: String
+    token: String,
 }
 #[derive(Debug, Args)]
 struct FetchRaisin {
     idx: u32,
     token: String,
-} 
-
+}
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -200,7 +201,18 @@ async fn main() -> Result<()> {
             let token_contract = Contract::new(token, token_abi, Arc::clone(&client));
             let decimals = get_decimals(token_contract.clone()).await? as usize;
             get_balance(token_contract, addy, decimals).await?;
-        }  
+        }
+        Command::Transfer(x) => {
+            let token: Address = x.token.parse::<Address>()?;
+            let mut abi = std::fs::read_to_string("testtoken.json")?;
+            abi = serde_json::from_str::<Value>(&abi)?.to_string();
+            let token_abi: Abi = serde_json::from_str(&format!(r#"{}"#, abi))?;
+            let token_contract = Contract::new(token, token_abi, Arc::clone(&client));
+            let decimals = get_decimals(token_contract.clone()).await? as usize;
+            let amount = parse_units(x.amt, decimals)?;
+            let receiver: Address = x.recipient.parse::<Address>()?;
+            transfer(token_contract, token, amount.into(), receiver, decimals).await?;
+        }
         _ => (),
     }
 
