@@ -212,7 +212,7 @@ async fn main() -> Result<()> {
             let amount = parse_units(x.amt, decimals)?;
             let receiver: Address = x.recipient.parse::<Address>()?;
             transfer(token_contract, token, amount.into(), receiver, decimals).await?;
-            println!("Transfer sucessful!");
+            println!("Transfer successful!");
         }
         _ => (),
     }
