@@ -53,4 +53,6 @@ Command Options:
 
 `get-balance <ADDRESS> <TOKEN>`: Get balance of token at some address,
 
-`transfer <AMOUNT> <TOKEN> <RECIPIENT>`: Transfer token from your keystore to an arbitrary address
+`transfer-tkn <AMOUNT> <TOKEN> <RECIPIENT>`: Transfer token from your keystore to an arbitrary address,
+
+`transfer-eth <AMOUNT> <RECIPIENT>`: Transfer Ether (or native asset) from your keystore to an arbitrary address 
