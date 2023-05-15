@@ -41,7 +41,7 @@ Command Options:
   
 `dontate <AMOUNT> <TOKEN> <INDEX>`: Donate to a Raisin,
   
-`batch-donation <AMOUNTS> <TOKENS> <INDEX>`: Donate to multiple Raisins,
+`batch-donation <AMOUNTS> <TOKENS> <INDICES>`: Donate to multiple Raisins,
   
 `end-fund <INDEX>`: End a Raisin you own,
   
@@ -51,8 +51,8 @@ Command Options:
   
 `get-raisin <INDEX> <TOKEN>`: Get information about a Raisin,
 
-`get-balance <ADDRESS> <TOKEN>`: Get balance of token at some address,
+`get-balance <ADDRESS> <TOKEN>`: Get balance of any token at some address,
 
-`transfer-tkn <AMOUNT> <TOKEN> <RECIPIENT>`: Transfer token from your keystore to an arbitrary address,
+`transfer-tkn <AMOUNT> <TOKEN> <RECIPIENT>`: Transfer any token from your keystore to an arbitrary address,
 
 `transfer-eth <AMOUNT> <RECIPIENT>`: Transfer Ether (or native asset) from your keystore to an arbitrary address 
