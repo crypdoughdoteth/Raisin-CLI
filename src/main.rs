@@ -7,8 +7,8 @@ use ethers::{
     prelude::{k256::ecdsa::SigningKey, rand::thread_rng, Contract, SignerMiddleware},
     providers::{Http, Middleware, Provider},
     signers::{LocalWallet, Signer, Wallet},
-    types::{Address, U256},
-    utils::parse_units,
+    types::{Address, U256, TransactionRequest},
+    utils::{parse_units, parse_ether},
 };
 use serde_json::Value;
 use std::sync::Arc;
@@ -55,9 +55,15 @@ enum Command {
     /// get token balance
     GetBalance(Balance),
     /// Transfer tokens
-    Transfer(Init),
+    TransferTkn(Init),
+    /// Transfer Ether
+    TransferEth(SendEth)
 }
-
+#[derive(Debug, Args)]
+struct SendEth {
+    amt: f32,
+    to: String
+}
 #[derive(Debug, Args)]
 struct Init {
     amt: f32,
@@ -115,6 +121,7 @@ async fn main() -> Result<()> {
             wallet.with_chain_id(provider.get_chainid().await.unwrap().as_u64())
         }
     };
+    let addy = key_store.address();
     let client = Arc::new(SignerMiddleware::new(provider, key_store));
     let contract = Contract::new(raisin.address, raisin.abi, Arc::clone(&client));
     match cli.command {
@@ -202,7 +209,7 @@ async fn main() -> Result<()> {
             let decimals = get_decimals(token_contract.clone()).await? as usize;
             get_balance(token_contract, addy, decimals).await?;
         }
-        Command::Transfer(x) => {
+        Command::TransferTkn(x) => {
             let token: Address = x.token.parse::<Address>()?;
             let mut abi = std::fs::read_to_string("testtoken.json")?;
             abi = serde_json::from_str::<Value>(&abi)?.to_string();
@@ -212,7 +219,16 @@ async fn main() -> Result<()> {
             let amount = parse_units(x.amt, decimals)?;
             let receiver: Address = x.recipient.parse::<Address>()?;
             transfer(token_contract, token, amount.into(), receiver, decimals).await?;
-            println!("Transfer successful!");
+            println!("Token Transfer successful!");
+        },
+        Command::TransferEth(x) => {
+            println!("Sending {} ether to {} ...", &x.amt, &x.to);
+            let tx = TransactionRequest::new()
+                .to(x.to.parse::<Address>()?)
+                .value(U256::from(parse_ether(x.amt)?))
+                .from(addy);
+            client.send_transaction(tx, None).await?.await?;
+            println!("Ether transfer successful!");
         }
         _ => (),
     }
