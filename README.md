@@ -56,3 +56,7 @@ Command Options:
 `transfer-tkn <AMOUNT> <TOKEN> <RECIPIENT>`: Transfer any token from your keystore to an arbitrary address,
 
 `transfer-eth <AMOUNT> <RECIPIENT>`: Transfer Ether (or native asset) from your keystore to an arbitrary address 
+
+TESTNET ONLY: 
+
+`test`: mint 420 RaisinTestTokens on Sepolia to your keystore wallet
