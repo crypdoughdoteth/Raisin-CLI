@@ -57,7 +57,9 @@ enum Command {
     /// Transfer tokens
     TransferTkn(Init),
     /// Transfer Ether
-    TransferEth(SendEth)
+    TransferEth(SendEth),
+    /// Testnet Token Airdrop
+    Test,
 }
 #[derive(Debug, Args)]
 struct SendEth {
@@ -229,6 +231,17 @@ async fn main() -> Result<()> {
                 .from(addy);
             client.send_transaction(tx, None).await?.await?;
             println!("Ether transfer successful!");
+        },
+        Command::Test => {
+            let tkn = "0x7A56e2F6e2965a3569Fe3BD9c8f65E565C0941ef".parse::<Address>()?;
+            let mut abi = std::fs::read_to_string("testtoken.json")?;
+            abi = serde_json::from_str::<Value>(&abi)?.to_string();
+            let token_abi: Abi = serde_json::from_str(&format!(r#"{}"#, abi))?;
+            let contract = Contract::new(tkn, token_abi, Arc::clone(&client));
+            let call = contract.method::<_, ()>("mint", ())?;
+            let pending = call.send().await?;
+            pending.confirmations(6).await?;
+            println!("Successfully minted test tokens!")
         }
         _ => (),
     }
